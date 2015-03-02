@@ -1,12 +1,27 @@
-PROJECT(sqlite3)
+PROJECT(sqlite3 C CXX)
 cmake_minimum_required(VERSION 2.8)
 
-
+###############
+# ASI default settings
+list(APPEND CMAKE_MODULE_PATH "$ENV{ASI}/cmake/Modules")
+include(asv_cmake_defaults)
+asv_cmake_defaults( )
+###############
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
-add_library(sqlite3 STATIC src/sqlite3.c src/sqlite3.h src/sqlite3ext.h)
-add_executable(sqlite src/sqlite3.c src/shell.c src/sqlite3.h src/sqlite3ext.h)
-set_target_properties(sqlite PROPERTIES OUTPUT_NAME sqlite3)
+set(exename sqlite)
+set(libname sqlite3)
+if(UNIX)
+  add_library(${libname} SHARED src/sqlite3.c src/sqlite3.h src/sqlite3ext.h)
+  add_executable(${exename} src/sqlite3.c src/shell.c src/sqlite3.h src/sqlite3ext.h)
+  target_link_libraries(${exename} -ldl -lpthread -lm)
+  set_target_properties(${exename} PROPERTIES OUTPUT_NAME ${libname})
+else()
+  add_library(${libname} STATIC src/sqlite3.c src/sqlite3.h src/sqlite3ext.h)
+  # later set_target_properties(${libname} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  install_static_pdb(${libname}) # ASV
+  add_executable(${exename} src/sqlite3.c src/shell.c src/sqlite3.h src/sqlite3ext.h)
+endif()
 
 add_definitions(-DSQLITE_ENABLE_RTREE)
 add_definitions(-DSQLITE_ENABLE_FTS4)
@@ -24,5 +39,9 @@ if(NOT WIN32)
 endif()
 
 install(FILES src/sqlite3.h src/sqlite3ext.h DESTINATION include)
-install(TARGETS sqlite3 LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-install(TARGETS sqlite RUNTIME DESTINATION bin)
+install(TARGETS ${exename} RUNTIME DESTINATION bin)
+install(TARGETS ${libname}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    )
