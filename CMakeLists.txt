@@ -35,7 +35,7 @@ add_definitions(-DSQLITE_ENABLE_RBU)
 add_definitions(-DSQLITE_ENABLE_STAT4)
 
 # Uncomment this for single-threaded variant (faster)
-#add_definitions(-DSQLITE_THREADSAFE=0)
+add_definitions(-DSQLITE_THREADSAFE=0)
 
 if(WIN32)
   # copy sqlite.exe to sqlite3.exe
